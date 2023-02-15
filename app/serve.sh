@@ -1,1 +1,2 @@
-python serving.py
+#!/bin/bash
+python3 serving.py

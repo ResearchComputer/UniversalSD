@@ -34,7 +34,7 @@ class FastStableDiffusion(FastInferenceInterface):
         args = args if args is not None else {}
         super().__init__(model_name, args)
         self.pipe = StableDiffusionMegaPipeline.from_pretrained(
-            os.environ.get("MODEL", "runwayml/stable-diffusion-v1-5"),
+            os.environ.get("HF_MODEL", "runwayml/stable-diffusion-v1-5"),
             torch_dtype=torch.float16,
             revision="fp16",
             use_auth_token=args.get("auth_token"),
@@ -100,9 +100,7 @@ class FastStableDiffusion(FastInferenceInterface):
                     guidance_scale=args[0].get("guidance_scale", 7.5),
                 )
             elif mode == "semantic_guidance":
-                print(args[0])
                 editing_prompt = args[0].get("editing_prompt", None)
-                
                 reverse_editing_direction = args[0].get("reverse_editing_direction", False)
                 edit_guidance_scale = args[0].get("edit_guidance_scale", 500)
                 edit_warmup_steps = args[0].get("edit_warmup_steps", 10)
@@ -149,11 +147,15 @@ class FastStableDiffusion(FastInferenceInterface):
             }
 
 if __name__ == "__main__":
-    coord_url = os.environ.get("COORD_URL", "localhost")
+    coord_url = os.environ.get("COORD_URL", "127.0.0.1")
+    
+    coord_http_port = os.environ.get("COORD_HTTP_PORT", "8092")
+    coord_ws_port = os.environ.get("COORD_WS_PORT", "8093")
+
     coordinator = TogetherWeb3(
         TogetherClientOptions(reconnect=True),
-        http_url=os.environ.get("COORD_HTTP_URL", f"http://{coord_url}:8092"),
-        websocket_url=os.environ.get("COORD_WS_URL", f"ws://{coord_url}:8093/websocket"),
+        http_url=f"http://{coord_url}:{coord_http_port}",
+        websocket_url=f"ws://{coord_url}:{coord_ws_port}/websocket"
     )
     fip = FastStableDiffusion(
         model_name=os.environ.get("SERVICE", "universal-diffusion"),
